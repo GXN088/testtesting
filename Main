@@ -1,0 +1,102 @@
+import java.util.Scanner;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Main {
+    public static String analyzeText(String text) {
+        if (text == null) {
+            return "Invalid input";
+        }
+        if (text.isEmpty()) {
+            return "Empty text";
+        }
+
+        StringBuilder result = new StringBuilder();
+        
+        // Паттерны
+        Pattern wordPattern = Pattern.compile("\\b[a-zA-Z]+\\b");
+        Pattern numberPattern = Pattern.compile("\\b\\d+(\\.\\d+)?\\b");
+        Pattern emailPattern = Pattern.compile("\\b[\\w.-]+@[\\w.-]+\\.[\\w.-]+\\b");
+        Pattern urlPattern = Pattern.compile("https?://[\\w.-]+\\.[\\w.-]+\\b");
+        
+        // Категории
+        analyzePattern(text, wordPattern, "Words", result);
+        analyzePattern(text, numberPattern, "Numbers", result);
+        analyzePattern(text, emailPattern, "Emails", result);
+        analyzePattern(text, urlPattern, "URLs", result);
+        
+        return result.length() > 0 ? result.toString() : "No matches found";
+    }
+    
+    private static void analyzePattern(String text, Pattern pattern, String category, StringBuilder result) {
+        Matcher matcher = pattern.matcher(text);
+        List<Integer> positions = new ArrayList<>();
+        List<String> matches = new ArrayList<>();
+        int count = 0;
+        
+        while (matcher.find()) {
+            count++;
+            if (positions.size() < 3) {
+                positions.add(matcher.start());
+                matches.add(matcher.group());
+            }
+        }
+        
+        if (count > 0) {
+            if (result.length() > 0) {
+                result.append("\n");
+            }
+            result.append(category).append(": ")
+                  .append(count).append(", positions: ")
+                  .append(positions).append(", found: ")
+                  .append(matches);
+        }
+    }
+    
+    public static boolean validateMatches(String text) {
+        if (text == null || text.isEmpty()) {
+            return false;
+        }
+        
+        // Проверка email
+        Pattern emailPattern = Pattern.compile("\\b[\\w.-]+@[\\w.-]+\\.(com|org|net)\\b");
+        Matcher emailMatcher = emailPattern.matcher(text);
+        while (emailMatcher.find()) {
+            if (!emailMatcher.group().matches(".*\\.(com|org|net)$")) {
+                return false;
+            }
+        }
+        
+        // Проверка URL
+        Pattern urlPattern = Pattern.compile("http://.*");
+        if (urlPattern.matcher(text).find()) {
+            return false;
+        }
+        
+        // Проверка чисел
+        Pattern numberPattern = Pattern.compile("-\\d+(\\.\\d+)?");
+        if (numberPattern.matcher(text).find()) {
+            return false;
+        }
+        
+        // Проверка слов
+        Pattern wordPattern = Pattern.compile("\\b[a-zA-Z]{1,2}\\b");
+        if (wordPattern.matcher(text).find()) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        String text = scanner.nextLine();
+        
+        if (text.equals("null")) text = null;
+        
+        System.out.println(analyzeText(text));
+        System.out.println(validateMatches(text));
+    }
+}
